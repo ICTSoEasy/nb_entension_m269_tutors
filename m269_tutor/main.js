@@ -134,7 +134,7 @@ define([
           Jupyter.toolbar.add_buttons_group([
               Jupyter.keyboard_manager.actions.register ({
                   'help': 'Total up marks',
-                  'icon' : 'fa-play',
+                  'icon' : 'fa-check',
                   'handler': total_marks
               }, 'total-marks', 'M269')
           ])
