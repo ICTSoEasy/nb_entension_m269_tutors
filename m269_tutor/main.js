@@ -6,15 +6,38 @@ define([
           var idx = 0;
           var total_marks = 0;
           var max_marks = 0;
+		  var last_question = 'Y';
+		  var last_marks = 99;
           Jupyter.notebook.select(0);
           var missingMark = false;
+		  var questionParts = [];
+		  var duplicates = 'Duplicates: ';
+		  var tbl = '<table><tr><td>Question</td><td>Marks</td><td>Out of</td></tr>';
           while (cell = Jupyter.notebook.get_cell(idx)) {
+			  question = cell.metadata['QUESTION'] || false;
+			  if (question) {
+				  //console.log('Setting last question');
+				  last_question = cell.metadata['QUESTION'];
+				  //console.log('Last question now: '+last_question);
+			  }
               marks = cell.metadata['MARKS'] || 99;
               if (marks != 99) {
                   max_marks += marks;
+				  last_marks = marks;
               }
               type = cell.metadata['TYPE'] || false;
               if (type == "MARKS") {
+                  questionParts.push(cell.metadata['QUESTION'] || false);
+                  target = cell.metadata['QUESTION'] || false;
+                  counter = 0;
+                  for (thing of questionParts) {
+                      if (target == thing) {
+                          counter++;
+                      }
+                  }
+                  if (counter > 1) {
+                      duplicates = duplicates + cell.metadata['QUESTION'] + ' ';
+                  }
                   var mark = cell.get_text().split('/')[0];
                   var markf = parseFloat(mark);
                   if (!isNaN(markf)) {
@@ -22,21 +45,37 @@ define([
                   } else {
                       missingMark = true;
                   }
-                  console.log(mark);
-                  console.log(total_marks);
+				  tbl += '<tr><td>';
+				  if (mark == '?') {
+					  tbl += '<MARK style="background-color:yellow">';
+				  }
+				  tbl += last_question;
+				  if (mark == '?') {
+					  tbl += '</MARK>';
+				  }
+				  tbl += '</td><td>'+mark+'</td><td>'+last_marks+'</td></tr>';
+				  //console.log('Question: '+last_question);
+                  //console.log('Marks: '+mark+'/'+marks);
               }
               idx++;
+              //console.log(total_marks);
           }
           if (missingMark) {
               alert('At least one mark is missing.');
-          } else {
-              Jupyter.notebook.insert_cell_at_bottom('markdown').set_text("Total marks: "+total_marks+"/"+max_marks);
-              Jupyter.notebook.get_cell(-1).metadata['cellcol'] = 'feedbackcell';
-              Jupyter.notebook.get_cell(-1).execute();
-              Jupyter.notebook.get_cell(1).execute();
           }
+		  tbl += '</table><br /><br />'+'Total marks: '+Math.round(total_marks)+'/'+max_marks;
+		  if (Jupyter.notebook.get_cell(-1).metadata['TYPE'] == "RESULTS") {
+			  //Delete old results box
+			  Jupyter.notebook.delete_cell(-1);
+		  }
+		  Jupyter.notebook.insert_cell_at_bottom('markdown').set_text(tbl+'<hr />'+duplicates);
+		  //Jupyter.notebook.insert_cell_at_bottom('markdown').set_text('Total marks: '+total_marks+'/'+max_marks);
+		  Jupyter.notebook.get_cell(-1).metadata['cellcol'] = 'feedbackcell';
+		  Jupyter.notebook.get_cell(-1).metadata['TYPE'] = 'RESULTS';
+		  Jupyter.notebook.get_cell(-1).execute();
+		  Jupyter.notebook.get_cell(1).execute();
 
-          const fs = require('fs')
+          /*const fs = require('fs')
 
           // Data which will write in a file.
           let data = "Learning how to write in a file."
@@ -46,8 +85,8 @@ define([
 
               // In case of a error throw err.
               if (err) throw err;
-          })
-
+          })*/
+		  Jupyter.notebook.save_notebook();
       };
       var prepare_for_marking = function() {
         //alert('start');
@@ -56,7 +95,13 @@ define([
         current_dir = current_dir? current_dir + "/": "";
         var current_name = $('body').attr('data-notebook-name');
         var new_name = current_name.split('.').slice(0,-1).join('.');
-        new_name = new_name + '-FEEDBACK.ipynb';
+		console.log(new_name);
+		if (new_name.includes('-STUDENT')) {
+			new_name = new_name.replace('-STUDENT','-MARKED');
+			new_name = new_name + '.ipynb';
+		} else {
+			new_name = new_name + '-MARKED.ipynb';
+		}
         nb_path = current_dir + new_name;
         nb_name = new_name;
         var model = {
@@ -67,7 +112,7 @@ define([
 
         var feedback_contents = `<b>Feedback: </b><br /><br />Marks:`;
 
-        isExecuted = confirm("This will overwrite any -FEEDBACK notebook already created for this file. Are you sure you want to continue?");
+        isExecuted = confirm("This will overwrite any notebook already created for the marking of this file. Are you sure you want to continue?");
         if (isExecuted) {
             Jupyter.notebook.contents.save(nb_path, model)
                 .then(function(data) {
@@ -99,8 +144,11 @@ define([
                 }
                 type = cell.metadata['TYPE'] || false;
                 marks = cell.metadata['MARKS'] || 99;
+				question = cell.metadata['QUESTION'] || false;
                 if (type == "ANSWER") {
                     Jupyter.notebook.insert_cell_below('markdown').set_text("?/"+marks);
+					Jupyter.notebook.get_cell(idx+1).metadata['MARKS'] = marks;
+					Jupyter.notebook.get_cell(idx+1).metadata['QUESTION'] = question;
                     Jupyter.notebook.insert_cell_below('markdown').set_text(feedback_contents);
                     feedback_cell_added = true;
                 }
@@ -110,6 +158,7 @@ define([
             Jupyter.notebook.delete_cell(1);
             Jupyter.notebook.delete_cell(1);
             Jupyter.notebook.get_cell(1).execute();
+			Jupyter.notebook.save_notebook();
         }
 
         //Jupyter.notebook.
@@ -117,7 +166,7 @@ define([
         //set_text(`# HELLO from Planet Jupyter!`);
         //Jupyter.notebook.select_prev();
         //Jupyter.notebook.execute_cell_and_select_below();
-        alert('end');
+        alert('Prepared.');
       };
       // Add prep for marking button
       var PrepareForMarkingButton = function () {
