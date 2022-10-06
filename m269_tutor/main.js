@@ -21,9 +21,12 @@ define([
 				  //console.log('Last question now: '+last_question);
 			  }
               marks = cell.metadata['MARKS'] || 99;
-              if (marks != 99) {
-                  max_marks += marks;
-				  last_marks = marks;
+              type = cell.metadata['TYPE'] || false;
+              if (type == 'MARKS') {
+                  if (marks != 99) {
+                      max_marks += marks;
+    				  last_marks = marks;
+                  }                  
               }
               type = cell.metadata['TYPE'] || false;
               if (type == "MARKS") {
