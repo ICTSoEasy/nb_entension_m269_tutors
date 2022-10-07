@@ -26,7 +26,7 @@ define([
                   if (marks != 99) {
                       max_marks += marks;
     				  last_marks = marks;
-                  }                  
+                  }
               }
               type = cell.metadata['TYPE'] || false;
               if (type == "MARKS") {
@@ -91,7 +91,32 @@ define([
           })*/
 		  Jupyter.notebook.save_notebook();
       };
-      var prepare_for_marking = function() {
+      var unlock_cells = function() {
+          var idx = 0;
+          while (cell = Jupyter.notebook.get_cell(idx)) {
+              //console.log(idx);
+              //console.log(cell.metadata['editable']);
+              if (cell.metadata['editable'] == false) {
+                  cell.metadata['editable'] = true
+              }
+              idx++;
+          }
+          Jupyter.notebook.save_notebook();
+          alert('unlocked');
+      };
+      var lock_cells = function() {
+          var idx = 0;
+          while (cell = Jupyter.notebook.get_cell(idx)) {
+              //console.log(idx);
+              //console.log(cell.metadata['editable']);
+              if (cell.metadata['editable'] == true) {
+                  cell.metadata['editable'] = false
+              }
+              idx++;
+          }
+          Jupyter.notebook.save_notebook();
+          alert('locked');
+      };      var prepare_for_marking = function() {
         //alert('start');
         var that = this;
         var current_dir = $('body').attr('data-notebook-path').split('/').slice(0, -1).join("/");
@@ -191,17 +216,35 @@ define([
               }, 'total-marks', 'M269')
           ])
       }
+      //Lock cells button
+      var LockCells = function() {
+          Jupyter.toolbar.add_buttons_group([
+              Jupyter.keyboard_manager.actions.register({
+                  'help': 'Lock cells',
+                  'icon' : 'fa-lock',
+                  'handler': lock_cells
+              }, 'lock-cells', 'M269')
+          ])
+      }
+      //Unlock cells button
+      var UnlockCells = function() {
+          Jupyter.toolbar.add_buttons_group([
+              Jupyter.keyboard_manager.actions.register({
+                  'help': 'Unlock cells',
+                  'icon' : 'fa-unlock',
+                  'handler': unlock_cells
+              }, 'unlock-cells', 'M269')
+          ])
+      }
 
 
 
     // Run on start
     function load_ipython_extension() {
-        // Add a default cell if there are no cells
-        if (Jupyter.notebook.get_cells().length===1){
-            //insert_cell();
-        }
         PrepareForMarkingButton();
         TotalMarksButton();
+        UnlockCells();
+        LockCells();
     }
     return {
         load_ipython_extension: load_ipython_extension
