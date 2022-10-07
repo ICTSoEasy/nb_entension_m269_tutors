@@ -2,6 +2,23 @@ define([
     'base/js/namespace',
     'base/js/events'
     ], function(Jupyter, events) {
+      var sticky_user_details = function() {
+          cell = Jupyter.notebook.get_cell(0);
+          inner_cell = cell.element.find('div.inner_cell');
+          console.log(inner_cell);
+          inner_cell.css("z-index","10");
+          inner_cell.css("position","fixed");
+          inner_cell.css("left","0px");
+          inner_cell.css("top","100px");
+          inner_cell.css("width","100%");
+          inner_cell.css("background-color","#ffffcc");
+      }
+      var unsticky_user_details = function() {
+          cell = Jupyter.notebook.get_cell(0);
+          inner_cell = cell.element.find('div.inner_cell');
+          console.log(inner_cell);
+          inner_cell.removeAttr( 'style' );
+      }
       var total_marks = function() {
           var idx = 0;
           var total_marks = 0;
@@ -236,6 +253,26 @@ define([
               }, 'unlock-cells', 'M269')
           ])
       }
+      //Stick user details to top
+      var StickyUserDetails = function() {
+          Jupyter.toolbar.add_buttons_group([
+              Jupyter.keyboard_manager.actions.register({
+                  'help': 'Sticky User Details',
+                  'icon' : 'fa-user-plus',
+                  'handler': sticky_user_details
+              }, 'sticky-user-details', 'M269')
+          ])
+      }
+      //Unstick user details to top
+      var UnStickyUserDetails = function() {
+          Jupyter.toolbar.add_buttons_group([
+              Jupyter.keyboard_manager.actions.register({
+                  'help': 'Unsticky User Details',
+                  'icon' : 'fa-user-times',
+                  'handler': unsticky_user_details
+              }, 'unsticky-user-details', 'M269')
+          ])
+      }
 
 
 
@@ -245,6 +282,8 @@ define([
         TotalMarksButton();
         UnlockCells();
         LockCells();
+        StickyUserDetails();
+        UnStickyUserDetails();
     }
     return {
         load_ipython_extension: load_ipython_extension
