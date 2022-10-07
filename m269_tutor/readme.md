@@ -10,3 +10,4 @@ For use by markers of the Open University module M269 to aid in marking TMAs.
 	- List of duplicate answer cells are shown at the bottom after running the "Total up marks" tick button.
 - v0.2.1: Bug fix - total marks was doubling up!
 - v0.3: Added functionality to lock/unlock cells for editing.
+- v0.4: Added functionality to stick/unstick student name/pi from top.
