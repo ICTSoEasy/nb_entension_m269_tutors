@@ -204,6 +204,7 @@ define([
             Jupyter.notebook.delete_cell(1);
             Jupyter.notebook.get_cell(1).execute();
 			Jupyter.notebook.save_notebook();
+            alert('Prepared.');
         }
 
         //Jupyter.notebook.
@@ -211,7 +212,6 @@ define([
         //set_text(`# HELLO from Planet Jupyter!`);
         //Jupyter.notebook.select_prev();
         //Jupyter.notebook.execute_cell_and_select_below();
-        alert('Prepared.');
       };
       // Add prep for marking button
       var PrepareForMarkingButton = function () {
