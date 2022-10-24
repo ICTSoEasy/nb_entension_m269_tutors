@@ -159,7 +159,7 @@ define([
 
         isExecuted = confirm("This will overwrite any notebook already created for the marking of this file. Are you sure you want to continue?");
         if (isExecuted) {
-            Jupyter.notebook.contents.save(nb_path, model)
+            Jupyter.notebook.contents.save(decodeURI(nb_path), model)
                 .then(function(data) {
                     Jupyter.notebook.notebook_name = data.name;
                     Jupyter.notebook.notebook_path = data.path;
