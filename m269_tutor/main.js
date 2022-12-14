@@ -5,7 +5,6 @@ define([
       var sticky_user_details = function() {
           cell = Jupyter.notebook.get_cell(0);
           inner_cell = cell.element.find('div.inner_cell');
-          console.log(inner_cell);
           inner_cell.css("z-index","10");
           inner_cell.css("position","fixed");
           inner_cell.css("left","0px");
@@ -16,7 +15,6 @@ define([
       var unsticky_user_details = function() {
           cell = Jupyter.notebook.get_cell(0);
           inner_cell = cell.element.find('div.inner_cell');
-          console.log(inner_cell);
           inner_cell.removeAttr( 'style' );
       }
       var total_marks = function() {
@@ -33,15 +31,14 @@ define([
           while (cell = Jupyter.notebook.get_cell(idx)) {
 			  question = cell.metadata['QUESTION'] || false;
 			  if (question) {
-				  //console.log('Setting last question');
 				  last_question = cell.metadata['QUESTION'];
-				  //console.log('Last question now: '+last_question);
 			  }
               marks = cell.metadata['MARKS'] || 99;
               type = cell.metadata['TYPE'] || false;
               if (type == 'MARKS') {
                   if (marks != 99) {
                       max_marks += marks;
+                      console.log(max_marks);
     				  last_marks = marks;
                   }
               }
@@ -74,11 +71,8 @@ define([
 					  tbl += '</MARK>';
 				  }
 				  tbl += '</td><td>'+mark+'</td><td>'+last_marks+'</td></tr>';
-				  //console.log('Question: '+last_question);
-                  //console.log('Marks: '+mark+'/'+marks);
               }
               idx++;
-              //console.log(total_marks);
           }
           if (missingMark) {
               alert('At least one mark is missing.');
@@ -111,8 +105,6 @@ define([
       var unlock_cells = function() {
           var idx = 0;
           while (cell = Jupyter.notebook.get_cell(idx)) {
-              //console.log(idx);
-              //console.log(cell.metadata['editable']);
               if (cell.metadata['editable'] == false) {
                   cell.metadata['editable'] = true
               }
@@ -124,8 +116,6 @@ define([
       var lock_cells = function() {
           var idx = 0;
           while (cell = Jupyter.notebook.get_cell(idx)) {
-              //console.log(idx);
-              //console.log(cell.metadata['editable']);
               if (cell.metadata['editable'] == true) {
                   cell.metadata['editable'] = false
               }
@@ -140,7 +130,6 @@ define([
         current_dir = current_dir? current_dir + "/": "";
         var current_name = $('body').attr('data-notebook-name');
         var new_name = current_name.split('.').slice(0,-1).join('.');
-		console.log(new_name);
 		if (new_name.includes('-STUDENT')) {
 			new_name = new_name.replace('-STUDENT','-MARKED');
 			new_name = new_name + '.ipynb';
@@ -156,6 +145,8 @@ define([
         };
 
         var feedback_contents = `<b>Feedback: </b><br /><br />Marks:`;
+        var feedback_contents_no_marks = `<b>Feedback: </b><br /><br />`;
+
 
         isExecuted = confirm("This will overwrite any notebook already created for the marking of this file. Are you sure you want to continue?");
         if (isExecuted) {
@@ -173,6 +164,7 @@ define([
             var idx = 0;
             var feedback_cell_added = false;
             var marks_cell_added = false;
+            var no_marks = false;
             Jupyter.notebook.select(0);
             while (cell = Jupyter.notebook.get_cell(idx)) {
                 if (marks_cell_added) {
@@ -185,17 +177,27 @@ define([
                     cell.metadata['cellcol'] = 'feedbackcell';
                     cell.execute();
                     feedback_cell_added = false;
-                    marks_cell_added = true;
+                    if (no_marks == false) {
+                        marks_cell_added = true;
+                    } else {
+                        no_marks = false;
+                    }
                 }
                 type = cell.metadata['TYPE'] || false;
                 marks = cell.metadata['MARKS'] || 99;
 				question = cell.metadata['QUESTION'] || false;
                 if (type == "ANSWER") {
-                    Jupyter.notebook.insert_cell_below('markdown').set_text("?/"+marks);
-					Jupyter.notebook.get_cell(idx+1).metadata['MARKS'] = marks;
-					Jupyter.notebook.get_cell(idx+1).metadata['QUESTION'] = question;
-                    Jupyter.notebook.insert_cell_below('markdown').set_text(feedback_contents);
-                    feedback_cell_added = true;
+                    if (marks != -1) {
+                        Jupyter.notebook.insert_cell_below('markdown').set_text("?/"+marks);
+    					Jupyter.notebook.get_cell(idx+1).metadata['MARKS'] = marks;
+    					Jupyter.notebook.get_cell(idx+1).metadata['QUESTION'] = question;
+                        Jupyter.notebook.insert_cell_below('markdown').set_text(feedback_contents);
+                        feedback_cell_added = true;
+                    } else {
+                        Jupyter.notebook.insert_cell_below('markdown').set_text(feedback_contents_no_marks);
+                        feedback_cell_added = true;
+                        no_marks = true;
+                    }
                 }
                 idx++;
                 Jupyter.notebook.select_next();
@@ -290,4 +292,4 @@ define([
     };
 });
 
-//jupyter contrib nbextension install
+//jupyter contrib nbextension install --user
