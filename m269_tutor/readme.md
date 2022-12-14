@@ -13,3 +13,4 @@ For use by markers of the Open University module M269 to aid in marking TMAs.
 - v0.4: Added functionality to stick/unstick student name/pi from top.
 - v0.4.1: Bug fix for Charly - "prepared" only shows when you don't cancel the warning.
 - v0.4.2: Bug fix to keep spaces in file names.
+- v0.4.3: Minor adjustments to allow for non-marked answers in TMA03.
